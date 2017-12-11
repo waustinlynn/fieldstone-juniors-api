@@ -35,7 +35,7 @@ namespace lynn_api
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseMiddleware<AuthFilter>();
             app.UseMvc();
         }
     }

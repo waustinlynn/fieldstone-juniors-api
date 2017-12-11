@@ -23,9 +23,24 @@ namespace lynn_api.Controllers
         }
 
         [HttpGet("{id}")]
-        public TestModel Get(string id)
+        public dynamic Get(string id)
         {
-            return new TestModel() { Name = id } ;
+            return _storage.GetDocument<dynamic>(id, "main.json");
+        }
+
+        [HttpPost("{id}")]
+        public ActionResult Post(string id, [FromBody]dynamic jsonData)
+        {
+            if(jsonData == null)
+            {
+                return BadRequest("Can not save data, no content was delivered");
+            }
+            if(jsonData.FileName == null || String.IsNullOrEmpty(jsonData.FileName.Value))
+            {
+                return BadRequest("Data must contain the property 'FileName' at the root of the object");
+            }
+            _storage.SaveDocument<dynamic>(jsonData, id, jsonData.FileName.Value);
+            return Ok();
         }
     }
 }

@@ -8,6 +8,6 @@ namespace lynn_api
     public interface IStorage
     {
         T GetDocument<T>(string container, string fileName);
-        void SaveDocument<T>(string container, string fileName);
+        void SaveDocument<T>(T data, string container, string fileName);
     }
 }

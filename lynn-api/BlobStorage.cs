@@ -1,9 +1,12 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace lynn_api
@@ -15,21 +18,36 @@ namespace lynn_api
         {
             _settings = settings;
         }
-        public T GetDocument<T>(string container, string fileName)
+
+        private CloudBlobContainer GetBlobContainer(string containerName)
         {
-            var storageCredentials = new StorageCredentials(_settings.StorageAccountName, _settings.StorageAccountKey);
-            var cloudStorageAccount = new CloudStorageAccount(storageCredentials, true);
-            var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
-            var blobContainer = cloudBlobClient.GetContainerReference(container);
-            var blob = blobContainer.GetBlobReference(fileName);
-            var stream = blob.OpenReadAsync().Result;
-            //return JsonConvert.DeserializeObject<T>()
-            return Activator.CreateInstance<T>();
+            var container = new CloudStorageAccount(
+                new StorageCredentials(_settings.StorageAccountName, _settings.StorageAccountKey), true)
+                .CreateCloudBlobClient()
+                .GetContainerReference(containerName);
+            container.CreateIfNotExistsAsync().Wait();
+            return container;
         }
 
-        public void SaveDocument<T>(string container, string fileName)
+        public T GetDocument<T>(string container, string fileName)
         {
-            throw new NotImplementedException();
+            return JsonConvert.DeserializeObject<T>(
+                new StreamReader(
+                    //blob.OpenReadAsync().Result
+                    GetBlobContainer(container)
+                        .GetBlobReference(fileName)
+                        .OpenReadAsync()
+                        .Result
+                ).ReadToEnd()
+            );
+        }
+
+        public void SaveDocument<T>(T data, string container, string fileName)
+        {
+            GetBlobContainer(container).GetBlockBlobReference(fileName)
+                .UploadFromStreamAsync(
+                    new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)))
+                ).Wait();
         }
     }
 }
