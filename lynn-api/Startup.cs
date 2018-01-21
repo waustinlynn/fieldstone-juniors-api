@@ -26,11 +26,18 @@ namespace lynn_api
             services.AddMvc();
             services.AddSingleton(Configuration.GetSection("App").Get<AppSettings>());
             services.AddTransient<IStorage,BlobStorage>();
+            services.AddCors(o => o.AddPolicy("AllowAll", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseCors("AllowAll");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

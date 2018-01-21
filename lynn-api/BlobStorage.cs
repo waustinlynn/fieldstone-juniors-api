@@ -49,5 +49,13 @@ namespace lynn_api
                     new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)))
                 ).Wait();
         }
+
+        public void DeleteDocument(string container, string fileName)
+        {
+            GetBlobContainer(container)
+                .GetBlockBlobReference(fileName)
+                .DeleteAsync()
+                .Wait();
+        }
     }
 }

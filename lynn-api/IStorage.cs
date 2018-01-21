@@ -9,5 +9,6 @@ namespace lynn_api
     {
         T GetDocument<T>(string container, string fileName);
         void SaveDocument<T>(T data, string container, string fileName);
+        void DeleteDocument(string container, string fileName);
     }
 }

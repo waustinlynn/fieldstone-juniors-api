@@ -31,7 +31,6 @@ namespace lynn_api
                 if(token != _settings.BasicKey)
                 {
                     context.Response.StatusCode = 401;
-                    return;
                 }
             }
             else

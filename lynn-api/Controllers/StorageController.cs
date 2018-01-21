@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace lynn_api.Controllers
 {
     [Produces("application/json")]
-    [Route("api/Storage")]
     public class StorageController : Controller
     {
         private readonly IStorage _storage;
@@ -22,25 +21,49 @@ namespace lynn_api.Controllers
             return new TestModel() { Name = "Test Name", Prop2 = "Test Property" };
         }
 
-        [HttpGet("{id}")]
-        public dynamic Get(string id)
+        [HttpGet]
+        [Route("api/storage/get")]
+        public ActionResult Get(string container, string id)
         {
-            return _storage.GetDocument<dynamic>(id, "main.json");
+            try
+            {
+                return Ok(_storage.GetDocument<dynamic>(container, id));
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        [HttpPost("{id}")]
-        public ActionResult Post(string id, [FromBody]dynamic jsonData)
+        [HttpPost]
+        [Route("api/storage")]
+        public ActionResult Post(string container, string id, [FromBody]dynamic jsonData)
         {
-            if(jsonData == null)
+            try
             {
-                return BadRequest("Can not save data, no content was delivered");
-            }
-            if(jsonData.FileName == null || String.IsNullOrEmpty(jsonData.FileName.Value))
+                if (jsonData == null)
+                {
+                    return BadRequest("Can not save data, no content was delivered");
+                }
+                _storage.SaveDocument<dynamic>(jsonData, container, id);
+                return Ok();
+            }catch(Exception ex)
             {
-                return BadRequest("Data must contain the property 'FileName' at the root of the object");
+                return BadRequest(ex.Message);
             }
-            _storage.SaveDocument<dynamic>(jsonData, id, jsonData.FileName.Value);
-            return Ok();
+        }
+
+        [HttpDelete]
+        [Route("api/storage")]
+        public ActionResult Delete(string container, string id)
+        {
+            try
+            {
+                _storage.DeleteDocument(container, id);
+                return Ok();
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
