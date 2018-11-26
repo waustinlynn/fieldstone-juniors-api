@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace lynn_api.Controllers
 {
@@ -22,12 +23,12 @@ namespace lynn_api.Controllers
         }
 
         [HttpGet]
-        [Route("api/storage/get")]
+        [Route("api/storage/get/{container}/{id}")]
         public ActionResult Get(string container, string id)
         {
             try
             {
-                return Ok(_storage.GetDocument<dynamic>(container, id));
+                return Ok(_storage.GetDocument("fs-jrs", "data.txt"));
             }catch(Exception ex)
             {
                 return BadRequest(ex.Message);
@@ -36,7 +37,7 @@ namespace lynn_api.Controllers
 
         [HttpPost]
         [Route("api/storage")]
-        public ActionResult Post(string container, string id, [FromBody]dynamic jsonData)
+        public ActionResult Post([FromBody]dynamic jsonData)
         {
             try
             {
@@ -44,7 +45,8 @@ namespace lynn_api.Controllers
                 {
                     return BadRequest("Can not save data, no content was delivered");
                 }
-                _storage.SaveDocument<dynamic>(jsonData, container, id);
+
+                _storage.SaveDocument(JsonConvert.SerializeObject(jsonData), "fs-jrs", "data.txt");
                 return Ok();
             }catch(Exception ex)
             {

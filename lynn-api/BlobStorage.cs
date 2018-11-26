@@ -29,33 +29,30 @@ namespace lynn_api
             return container;
         }
 
-        public T GetDocument<T>(string container, string fileName)
-        {
-            return JsonConvert.DeserializeObject<T>(
-                new StreamReader(
-                    //blob.OpenReadAsync().Result
-                    GetBlobContainer(container)
-                        .GetBlobReference(fileName)
-                        .OpenReadAsync()
-                        .Result
-                ).ReadToEnd()
-            );
-        }
-
-        public void SaveDocument<T>(T data, string container, string fileName)
-        {
-            GetBlobContainer(container).GetBlockBlobReference(fileName)
-                .UploadFromStreamAsync(
-                    new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)))
-                ).Wait();
-        }
-
         public void DeleteDocument(string container, string fileName)
         {
             GetBlobContainer(container)
                 .GetBlockBlobReference(fileName)
                 .DeleteAsync()
                 .Wait();
+        }
+
+        public string GetDocument(string container, string fileName)
+        {
+            return new StreamReader(
+                    GetBlobContainer(container)
+                        .GetBlobReference(fileName)
+                        .OpenReadAsync()
+                        .Result
+                ).ReadToEnd();
+        }
+
+        public void SaveDocument(string data, string container, string fileName)
+        {
+            GetBlobContainer(container).GetBlockBlobReference(fileName)
+                .UploadFromStreamAsync(
+                    new MemoryStream(Encoding.UTF8.GetBytes(data))
+                ).Wait();
         }
     }
 }
