@@ -17,21 +17,47 @@ namespace lynn_api.Controllers
             _storage = storage;
         }
 
-        public TestModel Get()
+
+        [HttpGet]
+        [Route("api/teams")]
+        public ActionResult GetTeams()
         {
-            return new TestModel() { Name = "Test Name", Prop2 = "Test Property" };
+            try
+            {
+                return Ok(_storage.GetDocument("fs-jrs", "teams.txt"));
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/teams")]
+        public ActionResult SaveTeams([FromBody]dynamic data)
+        {
+            try
+            {
+                if (data == null) return BadRequest("No data posted");
+                _storage.SaveDocument(JsonConvert.SerializeObject(data), "fs-jrs", "teams.txt");
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet]
-        [Route("api/storage/get/{container}/{id}")]
-        public ActionResult Get(string container, string id)
+        [Route("api/data")]
+        public ActionResult GetData()
         {
             try
             {
                 return Ok(_storage.GetDocument("fs-jrs", "data.txt"));
-            }catch(Exception ex)
+            }
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Could not retrieve document");
             }
         }
 
