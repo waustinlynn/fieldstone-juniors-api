@@ -20,6 +20,13 @@ namespace lynn_api
         public async Task Invoke(HttpContext context)
         {
             var authHeader = context.Request.Headers["Authorization"];
+            //horrible hack for allowing file uploads from basic primeng control until I can implement custom
+            var pathValue = context.Request.Path.Value;
+            if (pathValue.Contains("fileupload") || pathValue.Contains("bracket"))
+            {
+                await _next.Invoke(context);
+                return;
+            }
             if(authHeader.Count == 0)
             {
                 context.Response.StatusCode = 401;

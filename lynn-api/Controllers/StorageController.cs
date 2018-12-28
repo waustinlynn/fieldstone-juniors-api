@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +14,11 @@ namespace lynn_api.Controllers
     public class StorageController : Controller
     {
         private readonly IStorage _storage;
+        private readonly string _filePath;
         public StorageController(IStorage storage)
         {
             _storage = storage;
+            _filePath = $"{Environment.CurrentDirectory}\\bracket.pdf";
         }
 
 
@@ -92,6 +96,39 @@ namespace lynn_api.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpPost]
+        [Route("api/fileupload")]
+        public async Task<IActionResult> UploadFile()
+        {
+            var files = Request.Form.Files;
+            long size = files.Sum(f => f.Length);
+
+            // full path to file in temp location
+            foreach (var formFile in files)
+            {
+                if (formFile.Length > 0)
+                {
+                    using (var stream = new FileStream(_filePath, FileMode.Create))
+                    {
+                        await formFile.CopyToAsync(stream);
+                    }
+                }
+            }
+
+            // process uploaded files
+            // Don't rely on or trust the FileName property without validation.
+
+            return Ok(new { count = files.Count, size, _filePath });
+        }
+
+        [HttpGet]
+        [Route("api/bracket")]
+        public IActionResult GetBracket()
+        {
+            var stream = new FileStream(_filePath, FileMode.Open);
+            return new FileStreamResult(stream, "application/pdf");
         }
     }
 }
